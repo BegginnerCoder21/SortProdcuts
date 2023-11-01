@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -108,7 +109,7 @@ class handleItemsTest extends TestCase
 
     }
 
- public function test_api_returns_a_desc_response_by_price() : void
+    public function test_api_returns_a_desc_response_by_price() : void
     {
         //act
         $response = $this->getJson(route('api.products',
@@ -126,6 +127,41 @@ class handleItemsTest extends TestCase
 
     }
 
+    public function test_api_returns_a_asc_response_by_category() :void
+    {
+        //act
+        $response = $this->getJson(route('api.products',
+            ['orderBy' => 'category',
+                'direction' => 'asc']));
+
+        //assert
+        $response
+            ->assertOk()
+            ->assertJsonStructure(['products'])
+            ->assertJson(fn(AssertableJson $json) => $json
+                ->where('products.0.category.name','abc')
+                ->where('products.2.category.name','cbc')
+            );
+
+    }
+ public function test_api_returns_a_desc_response_by_category() :void
+    {
+        //act
+        $response = $this->getJson(route('api.products',
+            ['orderBy' => 'category',
+                'direction' => 'asc']));
+
+        //assert
+        $response
+            ->assertOk()
+            ->assertJsonStructure(['products'])
+            ->assertJson(fn(AssertableJson $json) => $json
+                ->where('products.0.category.name','cbc')
+                ->where('products.2.category.name','abc')
+            );
+
+    }
+
 
     /**
      * @return Product|\Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model
@@ -136,15 +172,24 @@ class handleItemsTest extends TestCase
             ->sequence(
                 [
                     'name' => 'abc',
-                    'price' => 1000
+                    'price' => 1000,
+                    'category_id' => Category::factory()->create([
+                        'name' => 'abc'
+                    ])
                 ],
                 [
                     'name' => 'bbc',
-                    'price' => 2000
+                    'price' => 2000,
+                    'category_id' => Category::factory()->create([
+                        'name' => 'bbc'
+                    ])
                 ],
                 [
                     'name' => 'cbc',
-                    'price' => 3000
+                    'price' => 3000,
+                    'category_id' => Category::factory()->create([
+                        'name' => 'cbc'
+                    ])
                 ]
             )
             ->create();

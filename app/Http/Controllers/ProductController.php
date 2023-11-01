@@ -15,10 +15,9 @@ class ProductController extends Controller
      */
     public function index() : JsonResponse
     {
-
         $products = Product::with('category')
             ->when(
-                request('orderBy') == 'category',
+                request('orderBy') === 'category',
                 fn ($query,$criteria) => $query->orderBy(
                     Category::select('name')->where('id','products.category_id')->get(),request('direction')
                 )
@@ -31,7 +30,6 @@ class ProductController extends Controller
                 )
             )
             ->get();
-
         return response()->json([
             'products' => $products
         ]);
