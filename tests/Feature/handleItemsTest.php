@@ -90,6 +90,42 @@ class handleItemsTest extends TestCase
 
     }
 
+    public function test_api_returns_a_asc_response_by_price() : void
+    {
+        //act
+        $response = $this->getJson(route('api.products',
+            ['orderBy' => 'price',
+                'direction' => 'asc']));
+
+        //assert
+        $response
+            ->assertOk()
+            ->assertJsonStructure(['products'])
+            ->assertJson(fn(AssertableJson $json) => $json
+                ->where('products.0.price',1000)
+                ->where('products.2.price',3000)
+            );
+
+    }
+
+ public function test_api_returns_a_desc_response_by_price() : void
+    {
+        //act
+        $response = $this->getJson(route('api.products',
+            ['orderBy' => 'price',
+                'direction' => 'desc']));
+
+        //assert
+        $response
+            ->assertOk()
+            ->assertJsonStructure(['products'])
+            ->assertJson(fn(AssertableJson $json) => $json
+                ->where('products.0.price',3000)
+                ->where('products.2.price',1000)
+            );
+
+    }
+
 
     /**
      * @return Product|\Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model
@@ -99,13 +135,16 @@ class handleItemsTest extends TestCase
         return Product::factory(3)
             ->sequence(
                 [
-                    'name' => 'abc'
+                    'name' => 'abc',
+                    'price' => 1000
                 ],
                 [
-                    'name' => 'bbc'
+                    'name' => 'bbc',
+                    'price' => 2000
                 ],
                 [
-                    'name' => 'cbc'
+                    'name' => 'cbc',
+                    'price' => 3000
                 ]
             )
             ->create();
