@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use Illuminate\Http\JsonResponse;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -13,7 +15,22 @@ class ProductController extends Controller
      */
     public function index() : JsonResponse
     {
-        $products = Product::with('category')->get();
+
+        $products = Product::with('category')
+            ->when(
+                request('orderBy') == 'category',
+                fn ($query,$criteria) => $query->orderBy(
+                    Category::select('name')->where('id','products.category_id')->get(),request('direction')
+                )
+            )
+
+            ->when(
+                request('orderBy'),
+                fn ($query,$criteria) => $query->orderBy(
+                   $criteria,request('direction')
+                )
+            )
+            ->get();
 
         return response()->json([
             'products' => $products
